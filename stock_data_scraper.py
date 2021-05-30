@@ -12,5 +12,6 @@ def getData(symbol):
     "price": soup.find('div', {"class": 'D(ib) Mend(20px)'}).find_all('span')[0].text,
     "change": soup.find('div', {"class": "D(ib) Mend(20px)"}).find_all('span')[1].text }
     return stock
-
-print(getData("TSLA"))
+stock = input("What stock will you like to keep an eye on: ")
+for _ in range(10000):
+    print(getData(stock))
