@@ -32,7 +32,15 @@ categories = []
 scores = []
 
 print (f'{"CATEGORY":{27}} {"IPTC ID":{10}} {"FREQUENCY":{8}}')
-for category in document.categories:
+for category in document.categories:output = client.specific_resource_analysis(
+#     body={"document": {"text": text}}, 
+#     params={'language': language, 'resource': 'emotional-traits'
+# })
+# pdb.set_trace()
+# print(output)
+
+# for token in output.tokens:
+#     print (f'{text[token.start:token.end]:{20}} {token.lemma:{8}}')
     categories.append(category.label)
     scores.append(category.frequency)
     print (f'{category.label:{27}} {category.id_:{10}}{category.frequency:{8}}')
