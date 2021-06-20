@@ -46,29 +46,40 @@ class MyStreamListener(tweepy.StreamListener):
         super().__init__()
         self.counter = 0
         self.limit = 50
-        self.tweets_list = []
-        self.frame = None
 
     def on_status(self, status):
-        # Insert a row of data
-        db_cursor.execute("""INSERT INTO tweets VALUES (?)""", (status.text,))
-        db_connect.commit()
 
-        self.tweets_list.append(status.text)
-        # tweets_file.append(status.text)
-        print(status.text)
-        # print(status.extended_tweet["full_text"])
+        tweet_text = None
         print("_______")
+
+        try:
+            if hasattr(status, 'retweeted_status') and hasattr(status.retweeted_status, 'extended_tweet'):
+                print('retweeted: ' + status.retweeted_status.extended_tweet['full_text'])
+                tweet_text = status.retweeted_status.extended_tweet['full_text']
+
+            if hasattr(status, 'extended_tweet'):
+                print('extended_tweet: ' + status.extended_tweet['full_text'])
+                tweet_text = status.extended_tweet['full_text']
+            else:
+                print('text: ' + status.text)
+                tweet_text = status.text
+
+            # Insert a row of data
+            db_cursor.execute("""INSERT INTO tweets VALUES (?)""",(tweet_text,))
+            db_connect.commit()
+        except AttributeError:
+            print('attribute error: ' + status.text)
 
         self.counter += 1
         if self.counter < self.limit:
             return True
         else:
-            # self.frame = pd.DataFrame(self.tweets_list, columns=['Tweets_Text'])
-            # self.frame.to_csv('tweets_data.csv')
-            print("\n ____ Frame ___")
-            print(self.frame)
             myStream.disconnect()
+
+    def on_error(self, status_code):
+        if status_code == 420:
+            # returning False in on_data disconnects the stream
+            return False
 
 
 # def create_headers(bearer_token):
@@ -105,10 +116,8 @@ if __name__ == '__main__':
     # for tweet in public_tweets:
     #     print(tweet.text)
     myStreamListener = MyStreamListener()
-    myStream = tweepy.Stream(auth=api.auth, listener=myStreamListener)
-    live_feed = myStream.filter(track=['crypto'])
     myStream = tweepy.Stream(auth=api.auth, listener=myStreamListener, tweet_mode='extended')
-    live_feed = myStream.filter(track=['palestine', 'crypto'])
+    live_feed = myStream.filter(track=['#tesla', '#ev', '#electricvehicles'])
 
     # tweets_dum = search_tweets('covid')
     # print(type(tweets_dum))
