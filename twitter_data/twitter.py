@@ -7,12 +7,13 @@ auth = tweepy.OAuthHandler(credentials.consumer_key, credentials.consumer_secret
 auth.set_access_token(credentials.access_token, credentials.access_token_secret)
 api = tweepy.API(auth)
 
-db_connect = sql.connect('tweets.db')
+db_connect = sql.connect('tweets_db.sqlite3')
 
 db_cursor = db_connect.cursor()
 # Create table
-db_cursor.execute('''CREATE TABLE IF NOT EXISTS tweets
-               (tweet_text TEXT, search_keywords TEXT)''')
+db_cursor.execute('''CREATE TABLE IF NOT EXISTS tweets (tweet_text TEXT)''')
+# db_cursor.execute('''CREATE TABLE IF NOT EXISTS tweets (tweet_text TEXT, search_keywords TEXT)''')
+db_connect.commit()
 
 
 # # Insert a row of data
@@ -49,10 +50,10 @@ class MyStreamListener(tweepy.StreamListener):
 
     def on_status(self, status):
 
-        tweet_text = None
-        print("_______")
-
         try:
+            tweet_text = None
+            print("_______")
+
             if hasattr(status, 'retweeted_status') and hasattr(status.retweeted_status, 'extended_tweet'):
                 print('retweeted: ' + status.retweeted_status.extended_tweet['full_text'])
                 tweet_text = status.retweeted_status.extended_tweet['full_text']
@@ -67,14 +68,18 @@ class MyStreamListener(tweepy.StreamListener):
             # Insert a row of data
             db_cursor.execute("""INSERT INTO tweets (tweet_text) VALUES (?)""", (tweet_text,))
             db_connect.commit()
+
+            self.counter += 1
+            if self.counter < self.limit:
+                return True
+            else:
+                myStream.disconnect()
+
         except AttributeError:
             print('attribute error: ' + status.text)
 
-        self.counter += 1
-        if self.counter < self.limit:
-            return True
-        else:
-            myStream.disconnect()
+
+
 
     def on_error(self, status_code):
         if status_code == 420:
@@ -117,7 +122,7 @@ if __name__ == '__main__':
     #     print(tweet.text)
     myStreamListener = MyStreamListener()
     myStream = tweepy.Stream(auth=api.auth, listener=myStreamListener, tweet_mode='extended')
-    live_feed = myStream.filter(track=['#tesla', '#electricvehicles'])
+    live_feed = myStream.filter(track=['#tesla', '#electricvehicles'], languages=['en'])
 
     # tweets_dum = search_tweets('covid')
     # print(type(tweets_dum))
