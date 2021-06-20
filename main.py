@@ -4,14 +4,24 @@
 from expertai.nlapi.cloud.client import ExpertAiClient
 import os
 import credentials
+import sqlite3 as sql
 
 os.environ["EAI_USERNAME"] = credentials.twitter_dev_username
 os.environ["EAI_PASSWORD"] = credentials.twitter_dev_password
 
 client = ExpertAiClient()
 
-raw_text = open(r"C:\Users\LENOVO\PycharmProjects\nlpExpertApi\input_text", "r")
-text = raw_text.read()
+# raw_text = open(r"C:\Users\LENOVO\PycharmProjects\nlpExpertApi\input_text", "r")
+# text = raw_text.read()
+db_connect = sql.connect('twitter_data/tweets.db')
+db_cursor = db_connect.cursor()
+db_cursor.execute("SELECT * from tweets")
+tweets = db_cursor.fetchall()
+print(tweets[0][0])
+text = tweets[10][0]
+
+# raw_text = open(r"C:\Users\LENOVO\PycharmProjects\nlpExpertApi\input_text", "r")
+# text = raw_text.read()
 
 taxonomy = 'iptc'
 language = 'en'
