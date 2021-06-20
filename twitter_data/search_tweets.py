@@ -1,9 +1,9 @@
+from json import encoder
 from twitter import api
 from twitter.parse_tweet import ParseTweet
 from twitter.models import Trend, TwitterModel
 import os
 import twitter
-import pdb
 import requests
 import json
 
@@ -12,7 +12,7 @@ access_token = os.environ.get("TWEET_ACCESS_TOKEN")
 access_token_secret = os.environ.get("TWEET_ACCESS_SECRET")
 consumer_key = os.environ.get("TWEET_CONSUMER_KEY")
 consumer_secret = os.environ.get("TWEET_CONSUMER_SECRET")
-bearer_token_val = os.environ.get("BEARER_TOKEN")
+bearer_token_val = os.environ.get("TWEET_BEARER_TOKEN")
 
 
 # api = twitter.Api(consumer_key=consumer_key, 
@@ -61,10 +61,8 @@ def delete_all_rules(headers, bearer_token, rules):
 def set_rules(headers, delete, bearer_token):
     # You can adjust the rules if needed
     sample_rules = [
-        {"value": "#APPL -lang:en has:hashtags"
-        # "tag": "Apple Stock price"
-        }
-        # {"value": "cat has:images -grumpy", "tag": "cat pictures"},
+        # {"value": "Apple Inc has:images", "tag": "Apple Stock"},
+        {"value": "#EURO2021", "lang":"en"},
     ]
     payload = {"add": sample_rules}
     response = requests.post(
@@ -90,14 +88,16 @@ def get_stream(headers, set, bearer_token):
                 response.status_code, response.text
             )
         )
-    for response_line in response.iter_lines():
-        if response_line:
-            json_response = json.loads(response_line)
-            print(json.dumps(json_response, indent=4, sort_keys=True))
+    with open('messages/sample_data_new.json', "w") as file:
+        for response_line in response.iter_lines():
+            if response_line:
+                json_response = json.loads(response_line)
+                file.write("{}\n".format(json.dumps(json_response, indent=4, sort_keys=True)))
+                print(json.dumps(json_response, indent=4, sort_keys=True))
 
 
 def main():
-    bearer_token = os.environ.get("BEARER_TOKEN")
+    bearer_token = os.environ.get("TWEET_BEARER_TOKEN")
     headers = create_headers(bearer_token)
     rules = get_rules(headers, bearer_token)
     delete = delete_all_rules(headers, bearer_token, rules)
