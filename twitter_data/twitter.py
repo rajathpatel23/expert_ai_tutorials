@@ -12,7 +12,7 @@ db_connect = sql.connect('tweets.db')
 db_cursor = db_connect.cursor()
 # Create table
 db_cursor.execute('''CREATE TABLE IF NOT EXISTS tweets
-               (tweet_text TEXT)''')
+               (tweet_text TEXT, search_keywords TEXT)''')
 
 
 # # Insert a row of data
@@ -45,7 +45,7 @@ class MyStreamListener(tweepy.StreamListener):
     def __init__(self):
         super().__init__()
         self.counter = 0
-        self.limit = 50
+        self.limit = 10
 
     def on_status(self, status):
 
@@ -65,7 +65,7 @@ class MyStreamListener(tweepy.StreamListener):
                 tweet_text = status.text
 
             # Insert a row of data
-            db_cursor.execute("""INSERT INTO tweets VALUES (?)""",(tweet_text,))
+            db_cursor.execute("""INSERT INTO tweets (tweet_text) VALUES (?)""", (tweet_text,))
             db_connect.commit()
         except AttributeError:
             print('attribute error: ' + status.text)
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     #     print(tweet.text)
     myStreamListener = MyStreamListener()
     myStream = tweepy.Stream(auth=api.auth, listener=myStreamListener, tweet_mode='extended')
-    live_feed = myStream.filter(track=['#tesla', '#ev', '#electricvehicles'])
+    live_feed = myStream.filter(track=['#tesla', '#electricvehicles'])
 
     # tweets_dum = search_tweets('covid')
     # print(type(tweets_dum))
